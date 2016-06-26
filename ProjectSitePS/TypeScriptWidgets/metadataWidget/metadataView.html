@@ -1,0 +1,21 @@
+﻿<!-- HTML for displaying site metadata -->
+
+<div class="metadataWidget">
+    <div ng-show="vm.Project">
+        <div class="metadataControls" ng-show="vm.ShowControls">
+            <input type="button" value="Update Metadata" ng-click="vm.ChangeMetadataClick();" />
+        </div>
+        <div>
+            <div ng-class="vm.ConfidentialityCss">
+                Site Classification: {{vm.ConfidentialityLevel}}
+            </div>
+            <div class="metadataListing">
+                Project: {{vm.Project}}
+            </div>
+            <div class="metadataListing">
+                Location: {{vm.Location}}
+            </div>
+        </div>
+    </div>
+    <div class="errorMessage">{{vm.ErrorMessage}}</div>
+</div>

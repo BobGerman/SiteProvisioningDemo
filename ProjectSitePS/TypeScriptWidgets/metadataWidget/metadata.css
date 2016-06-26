@@ -1,0 +1,34 @@
+﻿.metadataWidget{
+  border: solid;
+  border-width: 1;
+  padding: 10px;
+}
+
+.metadataWidget .metadataControls {
+  float:right;
+}
+
+.metadataWidget .metadataControls input {
+  height:50px;
+}
+
+.metadataWidget .confidential {
+  color:red;
+}
+
+.metadataWidget .internal {
+  color:blue;
+}
+
+.metadataWidget .public {
+  color:green;
+}
+
+.metadataWidget .metadataListing {
+  padding: 0px 10px;
+}
+
+.metadataWidget .errorMessage {
+  color:red;
+  padding: 0px 10px;
+}

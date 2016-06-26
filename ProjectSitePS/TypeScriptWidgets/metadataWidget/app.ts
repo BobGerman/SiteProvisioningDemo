@@ -1,0 +1,4 @@
+﻿((): void => {
+    angular.module('metadataWidget', [])
+})();
+

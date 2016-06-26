@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<WebPart xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.microsoft.com/WebPart/v2">
+  <Title>Weather</Title>
+  <FrameType>Default</FrameType>
+  <Description>Displays the weather for a specified location</Description>
+  <IsIncluded>true</IsIncluded>
+  <ZoneID>wpz</ZoneID>
+  <PartOrder>0</PartOrder>
+  <FrameState>Normal</FrameState>
+  <Height />
+  <Width />
+  <AllowRemove>true</AllowRemove>
+  <AllowZoneChange>true</AllowZoneChange>
+  <AllowMinimize>true</AllowMinimize>
+  <AllowConnect>true</AllowConnect>
+  <AllowEdit>true</AllowEdit>
+  <AllowHide>true</AllowHide>
+  <IsVisible>true</IsVisible>
+  <DetailLink />
+  <HelpLink />
+  <HelpMode>Modeless</HelpMode>
+  <Dir>Default</Dir>
+  <PartImageSmall />
+  <MissingAssembly>Cannot import this Web Part.</MissingAssembly>
+  <PartImageLarge>/_layouts/15/images/mscontl.gif</PartImageLarge>
+  <IsIncludedFilter />
+  <Assembly>Microsoft.SharePoint, Version=16.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c</Assembly>
+  <TypeName>Microsoft.SharePoint.WebPartPages.ContentEditorWebPart</TypeName>
+  <ContentLink xmlns="http://schemas.microsoft.com/WebPart/v2/ContentEditor" />
+  <Content xmlns="http://schemas.microsoft.com/WebPart/v2/ContentEditor">
+    <![CDATA[
+      <div class="weather">
+        <div ng-controller="main as vm" ng-init="vm.query='Boston, MA'">
+            <h1>{{vm.City}} Weather</h1>
+
+            <div ng-include="'%ScriptSite%/weather/weatherView.html'" ng-show="vm.ValidDataLoaded"></div>
+
+            <p class="error">
+                {{vm.error}}
+            </p>
+        </div>
+
+        <script type="text/javascript" src="%ScriptSite%/Scripts/pnp-ww.min.js"
+                ww-appname="WeatherApp"
+                ww-apptype="Angular"
+                ww-appCss='[{"src": "%ScriptSite%/weather/weather.css", "priority":0}]'
+                ww-appScripts='[{"src": "https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js", "priority":0},
+                                {"src": "%ScriptSite%/weather/weatherApp.js", "priority":1},
+                                {"src": "%ScriptSite%/weather/weatherService.js", "priority":2}
+        ]'>
+        </script>
+    </div>
+  ​  ]]>
+  </Content>
+  <PartStorage xmlns="http://schemas.microsoft.com/WebPart/v2/ContentEditor" />
+</WebPart>

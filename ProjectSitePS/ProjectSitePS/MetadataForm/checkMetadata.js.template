@@ -1,0 +1,34 @@
+﻿(function () {
+
+    var FORM_URL = "%ScriptPath%/MetadataForm/EditMetadata.aspx";
+    var PROPERTY_TO_CHECK = "siteProject";
+
+    ExecuteOrDelayUntilScriptLoaded(function () {
+        ExecuteOrDelayUntilScriptLoaded(function () {
+            
+            var clientContext = new SP.ClientContext.get_current();
+            var web = clientContext.get_web();
+            clientContext.load(web);
+            var user = web.get_currentUser();
+            clientContext.load(user);
+            var props = web.get_allProperties();
+            clientContext.load(props);
+
+            clientContext.executeQueryAsync(
+                function (sender, args) {
+                    if (user.get_isSiteAdmin()) {
+                        if (!props.get_fieldValues()[PROPERTY_TO_CHECK]) {
+                            var siteUrl = FORM_URL + "?siteUrl=" + web.get_url();
+                            var statusID = SP.UI.Status.addStatus("Error",
+                                "Your site is not properly classified! " +
+                                "Please <a href='" + siteUrl + "'>click here</a> to update.",
+                                true);
+                            SP.UI.Status.setStatusPriColor(statusID, "red");
+                        }
+                    }
+                },
+                function (sender, args) {
+                });
+        }, "sp.core.js");
+    }, "sp.js");
+})()
