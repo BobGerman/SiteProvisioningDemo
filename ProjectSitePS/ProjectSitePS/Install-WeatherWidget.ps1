@@ -47,7 +47,7 @@ Function Deploy-Files ($fromPath, $toPath)
 				 Set-Content $itemFinalName
 
 				# Upload the file
-				Add-SPOFile -Path $itemFinalName -Folder $toPath
+				Add-PnPFile -Path $itemFinalName -Folder $toPath
 				Write-Host  "Deployed file: $spAppPath/$itemFinalName"
 
 				# Clean up the file with the tokens replaced
@@ -58,7 +58,7 @@ Function Deploy-Files ($fromPath, $toPath)
 				# No template, just copy the file
 				$fullName = $item.FullName
 				$fileName = $item.Name
-				Add-SPOFile -Path $fullName -Folder "$toPath"
+				Add-PnPFile -Path $fullName -Folder "$toPath"
 				Write-Host  "Deployed file: $fromPath/$fileName"
 			}
 		}
@@ -67,8 +67,8 @@ Function Deploy-Files ($fromPath, $toPath)
 
 # Connect to the script site and add a folder for the app
 Write-Host "Provisioning weather widget to $Url"
-Connect-SPOnline -Url $Url -Credentials $Credentials
-New-SPOList -Title "Weather" -Template DocumentLibrary -Url "Weather"
+Connect-PnPOnline -Url $Url -Credentials $Credentials
+New-PnPList -Title "Weather" -Template DocumentLibrary -Url "Weather"
 
 # Define source and destinations for the copy, as well as SharePoint app packaging files
 # that we don't need

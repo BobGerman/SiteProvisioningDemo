@@ -42,14 +42,14 @@ function Add-ListViewWebPart ($serverRelativePageUrl, $webPartName, $listName, $
 
     Write-Verbose "Adding web part $webPartName"
 
-    $list = Get-SPOList -Identity $listName
+    $list = Get-PnPList -Identity $listName
 	$listId = $list.Id.ToString().ToUpper()
 	if ($isLibrary) {
 	    $listUrl = $serverRelativeUrl + "/" + $listName
 	} else {
 	    $listUrl = $serverRelativeUrl + "/lists/" + $listName
 	}
-    $views = Get-SPOView -List $list | Where-Object {$_.DefaultView}
+    $views = Get-PnPView -List $list | Where-Object {$_.DefaultView}
     $viewId = ($views[0]).Id.ToString().ToUpper()
 
 	$webPartXml = ((Get-Content "./WebParts/$webPartName") `
@@ -61,7 +61,7 @@ function Add-ListViewWebPart ($serverRelativePageUrl, $webPartName, $listName, $
 
     $webPartXml > temp.xml
 
-	Add-SPOWebPartToWikiPage -Path ./temp.xml -ServerRelativePageUrl $serverRelativePageUrl -Row $row -Column $column
+	Add-PnPWebPartToWikiPage -Path ./temp.xml -ServerRelativePageUrl $serverRelativePageUrl -Row $row -Column $column
         
     Remove-Item -Path .\temp.xml
 }
@@ -71,8 +71,8 @@ function Add-ListViewWebPart ($serverRelativePageUrl, $webPartName, $listName, $
 ############################################################################
 function Add-ColumnToListView ($listName, $fieldName) {
 
-    $ctx = Get-SPOContext
-    $list = Get-SPOList -Identity $listName
+    $ctx = Get-PnPContext
+    $list = Get-PnPList -Identity $listName
     $ctx.Load($list.Views)
     $ctx.ExecuteQuery()
     $view = $list.Views | Where-Object {$_.Title -eq ""}
@@ -95,7 +95,7 @@ function Add-ScriptedWebPart ($serverRelativePageUrl, $webPartName, $scriptSite,
 
     $webPartXml > temp.xml
 
-	Add-SPOWebPartToWikiPage -Path ./temp.xml -ServerRelativePageUrl $serverRelativePageUrl -Row $row -Column $column
+	Add-PnPWebPartToWikiPage -Path ./temp.xml -ServerRelativePageUrl $serverRelativePageUrl -Row $row -Column $column
         
     Remove-Item -Path .\temp.xml
 }
@@ -104,12 +104,21 @@ function Add-ScriptedWebPart ($serverRelativePageUrl, $webPartName, $scriptSite,
 # New-List
 ############################################################################
 function New-List ($listTemplateName, $listName) {
-    $web = Get-SPOWeb
-    $ctx = Get-SPOContext
-    $ctx.Load($web.ListTemplates)
-    $ctx.ExecuteQuery()
+    $web = Get-PnPWeb
+    $ctx = Get-PnPContext
+    $listTemplate = $null
+
+    # Work around problem where some list templates are missing on a newly created site collection
+    Do {
+        Start-Sleep -Seconds 1
+        $ctx.Load($web.ListTemplates)
+        $ctx.ExecuteQuery()
+        $c = $web.ListTemplates.Count
+        Write-Verbose "Found $c list templates"
+    } Until ($web.ListTemplates.Count -gt 30)
+
     $listTemplate = $web.ListTemplates | Where-Object {$_.Name -eq $listTemplateName}
-    New-SPOList -Title $listName -Template $listTemplate.ListTemplateTypeKind
+    New-PnPList -Title $listName -Template $listTemplate.ListTemplateTypeKind
     Write-Verbose "Created $listName"
 }
 
@@ -120,11 +129,11 @@ function New-List ($listTemplateName, $listName) {
 Write-Verbose "1   - Creating Site Collection"
 Write-Verbose "1.1 - Connecting to main site collection"
 
-Connect-SPOnline $settings.RootSite -Credentials $Credentials
+Connect-PnPOnline $settings.RootSite -Credentials $Credentials
 
 Write-Verbose "1.2 - Creating new site collection $Url"
 
-New-SPOTenantSite -Title $title `
+New-PnPTenantSite -Title $title `
 				  -Url $url `
 				  -Description $Description `
 				  -Owner $Credentials.UserName `
@@ -140,9 +149,9 @@ New-SPOTenantSite -Title $title `
 Write-Verbose "2   - Provisioning Site Contents"
 Write-Verbose "2.1 - Connect to new site collection $url"
 
-Connect-SPOnline $url -Credentials $Credentials
+Connect-PnPOnline $url -Credentials $Credentials
 
-if ((Get-SPOWeb).Url.ToLower() -ne $url.ToLower()) {
+if ((Get-PnPWeb).Url.ToLower() -ne $url.ToLower()) {
 
     Write-Verbose "Unable to connect to new site collection $url"
     Write-Error "Unable to connect to new site collection $url"
@@ -152,7 +161,7 @@ if ((Get-SPOWeb).Url.ToLower() -ne $url.ToLower()) {
     Write-Verbose "2.2 - Set Security Settings"
     if (($SiteOwner1 -ne $null) -and ($siteOwner1 -ne "")) {
         Write-Verbose "Setting secondary site collection administrator: $siteOwner1"
-        $secondaryAdminUser = New-SPOUser -LoginName $siteOwner1
+        $secondaryAdminUser = New-PnPUser -LoginName $siteOwner1
         $secondaryAdminUser.IsSiteAdmin = $true
         $secondaryAdminUser.Update()
     } else {
@@ -161,7 +170,7 @@ if ((Get-SPOWeb).Url.ToLower() -ne $url.ToLower()) {
     }
     if (($SiteOwner2 -ne $null) -and ($siteOwner2 -ne "")) {
         Write-Verbose "Setting secondary site collection administrator: $siteOwner2"
-        $secondaryAdminUser = New-SPOUser -LoginName $siteOwner2
+        $secondaryAdminUser = New-PnPUser -LoginName $siteOwner2
         $secondaryAdminUser.IsSiteAdmin = $true
         $secondaryAdminUser.Update()
     } else {
@@ -172,8 +181,8 @@ if ((Get-SPOWeb).Url.ToLower() -ne $url.ToLower()) {
 
     # Announcements List
     New-List -ListTemplateName "Announcements" -ListName "Announcements"
-    $announcementsList = Get-SPOList -Identity "Announcements"
-    Add-SPOField -List $announcementsList `
+    $announcementsList = Get-PnPList -Identity "Announcements"
+    Add-PnPField -List $announcementsList `
                  -DisplayName "Urgent" `
                  -InternalName "Urgent" `
                  -Type Boolean `
@@ -182,25 +191,22 @@ if ((Get-SPOWeb).Url.ToLower() -ne $url.ToLower()) {
     # Calendar
     New-List -ListTemplateName "Calendar" -ListName "Calendar"
 
-    Write-Verbose "2.4 - Disable MDS"
-    Set-SPOMinimalDownloadStrategy -Off
-
-    Write-Verbose "2.5 - Removing built-in web parts"
+    Write-Verbose "2.4 - Removing built-in web parts"
 
     $webParts = @("Get started with your site", "Site Feed", "Documents")
 
     foreach ($webPart in $webParts) {
         Write-Verbose "Removing web part $webPart"
-        Remove-SPOWebPart -Title $webPart -ServerRelativePageUrl $serverRelativeHomePageUrl
+        Remove-PnPWebPart -Title $webPart -ServerRelativePageUrl $serverRelativeHomePageUrl
     }
 
     # To create additional web part templates:
     #
     # 1. Add web part to a test or template master site
-    # 2. Extract the XML with Get-SPOWebPartXml
+    # 2. Extract the XML with Get-PnPWebPartXml
     # 3. Edit the XML and replace the list GUID with %ListId%, view GUID with %ViewId%, and page URL with %PageUrl%
 
-    Write-Verbose "2.6 - Adding new web parts"
+    Write-Verbose "2.5 - Adding new web parts"
     Add-ListViewWebPart -serverRelativePageUrl $serverRelativeHomePageUrl -webPartName "AnnouncementsWP.xml" -listName "Announcements" -isLibrary $False -column 1 -row 2
     Add-ColumnToListView -listName "Announcements" -fieldName "Urgent"
     Add-ListViewWebPart -serverRelativePageUrl $serverRelativeHomePageUrl -webPartName "CalendarWP.xml" -listName "Calendar" -isLibrary $False -column 1 -row 2
@@ -210,20 +216,20 @@ if ((Get-SPOWeb).Url.ToLower() -ne $url.ToLower()) {
   
     # Apply site branding - Very light, just a theme and logo
 
-    Write-Verbose "2.7 - Adding branding"
-    Set-SPOTheme -ColorPaletteUrl "$serverRelativeUrl/_catalogs/theme/15/palette013.spcolor" -FontSchemeUrl "$serverRelativeUrl/_catalogs/theme/15/fontscheme002.spfont"
-    Write-Verbose "2.7.1 - Set theme"
-    $ctx = Get-SPOContext
-    $web = Get-SPOWeb
+    Write-Verbose "2.6 - Adding branding"
+    Set-PnPTheme -ColorPaletteUrl "$serverRelativeUrl/_catalogs/theme/15/palette013.spcolor" -FontSchemeUrl "$serverRelativeUrl/_catalogs/theme/15/fontscheme002.spfont"
+    Write-Verbose "2.6.1 - Set theme"
+    $ctx = Get-PnPContext
+    $web = Get-PnPWeb
     $web.SiteLogoUrl = $settings.ScriptSiteUrl + "/SiteAssets/BlueMetalLogo.png"
     $web.Update()
     $ctx.ExecuteQuery()
-    Write-Verbose "2.7.2 - Set logo"
+    Write-Verbose "2.6.2 - Set logo"
 
 
     # Provision site metadata form
 
-    Write-Verbose "2.8 - Adding site mtadata form"
+    Write-Verbose "2.7 - Adding site mtadata form"
     .\Add-MetadataForm.ps1 -Url $url -Credentials $Credentials
 
 }

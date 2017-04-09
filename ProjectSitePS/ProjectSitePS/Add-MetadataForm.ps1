@@ -19,7 +19,7 @@ if ($credentials -eq $null) {
 $settings = .\Get-Settings.ps1
 
 # Connect to the SharePoint site and add a folder for the app
-Connect-SPOnline -Url $Url -Credentials $Credentials
+Connect-PnPOnline -Url $Url -Credentials $Credentials
 
 $scriptLinkUrl = $settings.ScriptSiteUrl + "/MetadataForm/checkMetadata.js"
-Add-SPOJavaScriptLink -Key "MetaCapCheck" -Url $scriptLinkUrl
+Add-PnPJavaScriptLink -Key "MetaCapCheck" -Url $scriptLinkUrl
