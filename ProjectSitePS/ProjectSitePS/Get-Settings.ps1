@@ -3,8 +3,8 @@
 #
 [PSCustomObject]@{
 
-	ScriptSiteUrl = "https://<yourtenant>.sharepoint.com/sites/DemoScripts";
-    RootSite = "https://<yourtenant>.sharepoint.com";
+	ScriptSiteUrl = "https://<your tenant>.sharepoint.com/sites/DemoScripts";
+    RootSite = "https://<your tenant>.sharepoint.com";
     Lcid = 1033;
 	ResourceQuotaWarningLevel = 0;
 	ResourceQuota = 0;
